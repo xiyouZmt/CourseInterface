@@ -21,66 +21,44 @@ import java.util.*;
 public class CourseInterface extends HttpServlet{
 
     private String ip = "http://222.24.19.201/";
-    private String checkCodeUrl = ip + "checkCode.aspx";
     private String sessionUrl = ip + "default2.aspx";
     private String coursesUrl = ip + "xskbcx.aspx?xh=";
-//    private String username;
-//    private String password;
-//    private String checkCode;
-//    private String cookie;
-    private String [] values = new String[4];
+    private String username;
+    private String password;
+    private String checkCode;
+    private String cookie;
     private String [] weeks = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
     private OkHttpClient okHttpClient;
+    private StringBuilder builder = new StringBuilder();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        values[0] = request.getParameter("username");
-        System.out.println(values[0]);
-        values[1] = request.getParameter("password");
-        values[2] = request.getParameter("checkCode");
-        values[3] = request.getParameter("cookie");
+        username = request.getParameter("username");
+        password = request.getParameter("password");
+        checkCode = request.getParameter("checkCode");
+        cookie = request.getParameter("cookie");
         response.setContentType("text/html;charset=GBK");
-//        for (String value : values) {
-//            response.getWriter().write(value);
-//        }
-        okHttpClient = new OkHttpClient();
-        okHttpClient.setFollowRedirects(false);
-        System.out.println("1234");
-        getSessionId();
-        System.out.println("0000");
-        String courseHtml = getCourses();
-        System.out.println("abcd");
-        System.out.println(courseHtml);
-        response.getWriter().write(manageCourses(getCourses(Jsoup.parse(courseHtml))));
-        System.out.println("test");
+        if(username == null || password == null || checkCode == null || cookie == null){
+            builder.append("{\"result\":\"failed\",\"reason\":\"data error\"}");
+            response.getWriter().write(builder.toString());
+        } else {
+            okHttpClient = new OkHttpClient();
+            okHttpClient.setFollowRedirects(false);
+            cookie = getSessionId();
+            if(cookie.equals("error")){
+                response.getWriter().write(builder.toString());
+            } else {
+                String courseHtml = getCourses();
+                System.out.println(courseHtml);
+                response.getWriter().write(manageCourses(getCourses(Jsoup.parse(courseHtml))));
+            }
+        }
+        builder.delete(0, builder.length());
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doGet(request, response);
-    }
-
-    private String getCheckCode(){
-        /**
-         * 获取验证码，同时得到cookie,但是cookie此时并没有效果，需要经过请求一次主页才有用。
-         */
-        Request request = new Request.Builder().url(checkCodeUrl).build();
-        try {
-            Response response = okHttpClient.newCall(request).execute();
-            if(response.code() == 200){
-                if(response.header("Set_Cookie") != null){
-                    String cookie = response.header("Set-Cookie");
-                    return cookie.substring(0, cookie.indexOf(';'));
-                } else {
-                    return "cookie is null";
-                }
-            } else {
-                return "Network error";
-            }
-        } catch (IOException e) {
-            System.out.println(e.toString());
-            return "Network error";
-        }
     }
 
     private String getSessionId(){
@@ -89,22 +67,25 @@ public class CourseInterface extends HttpServlet{
          */
         FormEncodingBuilder builder = new FormEncodingBuilder();
         builder.add("__VIEWSTATE", "dDwyODE2NTM0OTg7Oz4EPWKUJ7QVy9jt5geaO9kcCdS0zQ==")
-                .add("txtUserName", values[0])
-                .add("TextBox2", values[1])
-                .add("txtSecretCode", values[2])
+                .add("txtUserName", username)
+                .add("TextBox2", password)
+                .add("txtSecretCode", checkCode)
                 .add("RadioButtonList1", "学生")
                 .add("Button1", "")
                 .add("lbLanguage", "")
                 .add("hidPdrs", "")
                 .add("hidsc", "");
-        Request request = new Request.Builder().url(sessionUrl).addHeader("Cookie", values[3])
+        Request request = new Request.Builder().url(sessionUrl).addHeader("Cookie", cookie)
                 .addHeader("Referer", "http://222.24.19.201").post(builder.build()).build();
         try {
             Response response = okHttpClient.newCall(request).execute();
+            System.out.println(response.code());
             if(response.code() == 302){
-                return values[3];
+                this.builder.append("{\"result\":\"success\",\"courses\":[");
+                return cookie;
             } else {
-                return "Network error";
+                this.builder.append("{\"result\":\"failed\",\"reason\":\"data error\"}");
+                return "error";
             }
         } catch (IOException e) {
             System.out.println(e.toString());
@@ -114,7 +95,7 @@ public class CourseInterface extends HttpServlet{
 
     private String getCourses(){
         StringBuilder content = new StringBuilder();
-        Request request = new Request.Builder().url(getCoursesUrl()).addHeader("Cookie", values[3])
+        Request request = new Request.Builder().url(getCoursesUrl()).addHeader("Cookie", cookie)
                 .addHeader("Referer", getCoursesUrl()).build();
         try {
             Response response = okHttpClient.newCall(request).execute();
@@ -139,8 +120,6 @@ public class CourseInterface extends HttpServlet{
     }
 
     private String manageCourses(List<Map<String, String>> list) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\"result\":\"success\",\"courses\":[");
         for (int i = 0; i < list.size(); i++) {
             for (String week1 : weeks) {
                 String week = list.get(i).get(week1);
@@ -199,6 +178,7 @@ public class CourseInterface extends HttpServlet{
     }
 
     private String getCoursesUrl(){
-        return coursesUrl + values[0] + "&xm=&gnmkdm=N121603";
+        return coursesUrl + username + "&xm=&gnmkdm=N121603";
     }
+
 }
