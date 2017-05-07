@@ -1,9 +1,8 @@
-#西邮课表API接口
+# 西邮课表API接口
 
-###支持POST/GET请求,
-**请求URL:http://119.29.181.219:8080/Course/get**
+### 支持GET请求 **请求URL : http://119.29.181.219:8080/course/get**
 
-###请求参数说明
+### 请求参数说明
 **username：学号**
 
 **password：密码**
@@ -12,7 +11,7 @@
 
 **cookie：请求验证码返回的sessionID**
 
-**请求示例: http://119.29.181.219:8080/Course/get?username=xxxxxxxx&password=xxxxxxxx&checkCode=xxxx&cookie=xxxxxxxxxxxxxxxxxxxxxxx**
+**请求示例: http://119.29.181.219:8080/course/get?username=xxxxxxxx&password=xxxxxxxx&checkCode=xxxx&cookie=xxxxxxxxxxxxxxxxxxxxxxx**
 
 **请求成功返回数据**
 
@@ -43,4 +42,4 @@
 
 **周一到周五7-8节**
 
-**目前只显示了有课的，没课的没有显示，在处理数据时按照返回顺序以及课程时间依次部署到客户端显示，后续会把所有时间的课程都返回，，，**
+**目前只显示了有课的，没课的没有显示，在处理数据时按照返回顺序以及课程时间依次部署到客户端显示**
