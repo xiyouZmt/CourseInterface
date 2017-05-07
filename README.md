@@ -29,7 +29,7 @@
 
 **注意在请求验证码时返回的sessionID一般示例是这样的: ASP.NET_SessionId=3ljlddvx5lbfqh55smo2sunv; path=/, 我们需要的是分号之前的那部分，所以要把分号以及后面的截掉。**
 
-###返回参数说明
+### 返回参数说明
 **name: 课程名称, time: 上课时间, teacher: 任课教师, classroom: 上课教室**
 
 **返回课程顺序**
